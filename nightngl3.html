@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NIGHTNGL-3 – Kochi Night Safety Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root,:root[data-theme="dark"]{--bg:#060a10;--panel:#0b131d;--ink:#cfe9ec;--mute:#6f8c96;--line:#173040;--acc:#5ee7df;--amb:#e8b86a;--good:#52d6a0;--warn:#e8b86a;--bad:#ff5f73;--sea:#071a26;--land:#10283a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#e9eef2;--panel:#fff;--ink:#16303b;--mute:#58737d;--line:#c6d4db;--acc:#0b8f8a;--amb:#b5782a;--good:#1b8f62;--warn:#b5782a;--bad:#c4283c;--sea:#cfe2ec;--land:#f6f8f9}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 'Share Tech Mono',ui-monospace,Menlo,Consolas,monospace}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;background:repeating-linear-gradient(0deg,rgba(94,231,223,.025) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 50% 35%,transparent 55%,rgba(0,0,0,.45))}
+:root[data-theme="light"] body:before{display:none}
+h1,h2{font-family:Rajdhani,'Share Tech Mono',sans-serif;letter-spacing:.14em;margin:0}
+h1{font-size:clamp(1.5rem,4vw,2.2rem);color:var(--acc);text-shadow:0 0 18px rgba(94,231,223,.4);animation:fl 7s infinite}
+@keyframes fl{0%,93%,100%{opacity:1}95%{opacity:.65}}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;max-width:1500px;margin:auto;padding:12px 12px 0}
+.sub{color:var(--mute);font-size:.8rem}.sub:after{content:"_";animation:bl 1s steps(2) infinite}@keyframes bl{50%{opacity:0}}
+.chip{border:1px solid var(--line);padding:2px 10px;border-radius:3px;color:var(--mute);font-size:.8rem;margin-left:6px;display:inline-block}.chip b{color:var(--acc)}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:14px;max-width:1500px;margin:auto;padding:12px}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+.pn{background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:inset 0 0 40px rgba(94,231,223,.04);padding:14px}
+.mapw{position:relative;height:clamp(380px,76vh,800px);background:var(--sea);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+svg{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.tb{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;z-index:3}
+.tb button{background:var(--panel)}
+#hud{position:absolute;left:8px;right:8px;bottom:8px;background:var(--panel);opacity:.92;border:1px solid var(--line);padding:6px 10px;font-size:.8rem;z-index:3;pointer-events:none}
+button{font:inherit;background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:3px;padding:5px 11px;cursor:pointer;margin:2px 4px 2px 0}
+button:hover,button.on{background:rgba(94,231,223,.16)}button.red{color:var(--bad);border-color:var(--bad)}button.dim{color:var(--mute);border-color:var(--line)}
+select,input[type=text],input[type=file]{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:5px;max-width:100%}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.tabs{display:flex;gap:4px;margin-bottom:12px}.tabs button{flex:1;margin:0}
+h2{font-size:1.1rem;color:var(--acc);margin-bottom:6px}p{margin:.4em 0}.mute{color:var(--mute);font-size:.85rem}
+ul,ol{margin:6px 0;padding-left:0;list-style:none}ol{padding-left:18px;list-style:decimal}li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}ol li{display:list-item}
+.pill{padding:0 8px;border-radius:99px;font-size:.72rem;color:#04121a;font-weight:700;white-space:nowrap}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+.lock{border:1px dashed var(--line);padding:10px;border-radius:4px;color:var(--mute);margin-top:8px}
+.kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px}.k{border:1px solid var(--line);padding:8px;color:var(--mute);font-size:.8rem}.k b{display:block;font-size:1.6rem;color:var(--acc)}
+.rt{border-left:4px solid;padding:6px 10px;margin:8px 0;background:var(--bg);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+canvas{width:100%;border:1px solid var(--line);border-radius:4px;margin:6px 0;display:block}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.flow span{border:1px solid var(--line);padding:3px 10px;border-radius:3px}.flow i{color:var(--acc);font-style:normal}
+.ping{fill:none;stroke:var(--bad);stroke-width:1.5px;vector-effect:non-scaling-stroke;transform-box:fill-box;transform-origin:center;animation:pg 2.8s ease-out infinite}
+@keyframes pg{from{transform:scale(1);opacity:.8}to{transform:scale(3.4);opacity:0}}
+.scan{fill:rgba(94,231,223,.07);stroke:var(--acc);stroke-width:1px;vector-effect:non-scaling-stroke;stroke-dasharray:3 4}
+:root:not([data-theme="light"]) #tl{filter:invert(1) hue-rotate(180deg) saturate(.5) brightness(.7)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+#modal .box{background:var(--panel);border:1px solid var(--bad);padding:24px;text-align:center;max-width:340px}#cnt{font-size:3.6rem;color:var(--bad);margin:0}
+</style></head><body>
+<div class="top"><div><h1>NIGHTNGL-3</h1><div class="sub">KOCHI NIGHT SAFETY GRID · drones online · scanning streets</div></div>
+<div><span class="chip">LOCAL <b id="clk">--:--:--</b></span><span class="chip">FAILED LIGHTS <b id="cf">0</b></span><span class="chip">DRONES <b>3</b></span><button id="theme" class="dim">NIGHT / DAWN</button></div></div>
+<div class="app">
+<div class="pn" style="padding:8px"><div class="mapw">
+<div class="tb"><button data-t="inspect" class="on">⌖ Inspect</button><button data-t="photo">◎ Photo spot</button><button data-t="start">▲ Start</button><button data-t="end">■ End</button><button data-t="drone">✈ Deploy drone</button><button id="zi" class="dim">＋</button><button id="zo" class="dim">－</button><button id="zr" class="dim">⟲</button><button id="tg" class="dim">Real tiles</button></div>
+<svg id="svg"><g id="tl"></g><g id="geo"></g><g id="dyn"></g><g id="dr"></g></svg><div id="hud"></div></div></div>
+<div class="pn"><div class="tabs"><button data-p="detect" class="on">DETECT</button><button data-p="route">ROUTE</button><button data-p="sos">SOS</button><button data-p="intel">INTEL</button></div>
+
+<div id="p-detect"><h2>AI STREETLIGHT DETECTOR</h2>
+<div><button id="bspot">◎ Pick spot on map</button><span id="spot" class="mute">no spot: next unverified light</span></div>
+<input type="file" id="file" accept="image/*" multiple>
+<div><button id="d1" class="dim">+ demo lit</button><button id="d2" class="dim">+ demo dark</button><button id="d3" class="dim">+ demo daytime</button><button id="d10" class="dim">⏩ +10 demo</button></div>
+<p class="mute">Failure threshold: <span id="tv">150</span></p><input type="range" id="thr" min="60" max="240" value="150">
+<canvas id="cv" width="320" height="180"></canvas>
+<div class="bar"><i id="pb"></i></div><div id="pc" class="mute"></div>
+<ul id="qs"></ul><div id="notes"></div></div>
+
+<div id="p-route" hidden><h2>SAFE ROUTE AI</h2>
+<p>From <select id="from"></select> To <select id="to"></select></p>
+<p class="mute">Night hour: <span id="hv"></span></p><input type="range" id="hour" min="18" max="24" value="21">
+<p class="mute">Weights · lights <input type="range" id="w0" min="0" max="10" value="4"> shops <input type="range" id="w1" min="0" max="10" value="3"> CCTV <input type="range" id="w2" min="0" max="10" value="2"> crowd <input type="range" id="w3" min="0" max="10" value="1"></p>
+<div id="routes"></div><button id="walk">▶ Walk the safest route</button><span id="wstat" class="mute"></span></div>
+
+<div id="p-sos" hidden><h2>SOS + ANOMALY</h2>
+<p class="mute">Alerts start from your START point. Guardians:</p>
+<input type="text" class="g" value="Mom"> <input type="text" class="g" value="Best friend"> <input type="text" class="g" value="Hostel warden">
+<p><button id="mot" class="dim">Enable motion sensor</button><span id="ms" class="mute"></span></p>
+<button class="red" data-s="Sudden running">Sudden run</button><button class="red" data-s="Phone fall / hard impact">Phone drop</button><button class="red" data-s="Loud scream detected">Scream</button>
+<div id="sos" class="rt" style="border-color:var(--line)">No SOS yet.</div></div>
+
+<div id="p-intel" hidden><h2>CORPORATION &amp; POLICE INTEL</h2><div class="kpi" id="kpi"></div><div id="cred"></div>
+<p><b>Failed lights</b> <span class="mute">(tap to fly there)</span></p><ul id="fails"></ul><p><b>Weakest streets</b></p><ul id="rank"></ul><p><b>Activity</b></p><ul id="log"></ul></div>
+</div></div>
+<div class="app" style="padding-top:0;grid-template-columns:1fr"><div class="pn"><h2>ARCHITECTURE</h2>
+<div class="flow"><span>Phone photo</span><i>→</i><span>AI light detector</span><i>→</i><span>10 approved photos</span><i>→</i><span>Kochi map + field notes</span></div>
+<div class="flow"><span>Walker location</span><i>→</i><span>Safe Route AI</span><i>→</i><span>Green vs red route</span></div>
+<div class="flow"><span>Anomaly / SOS</span><i>→</i><span>Guardians + police + safe shops + drone</span><i>→</i><span>Corporation dashboard</span></div>
+<p class="mute">Urban Intelligence = photo brightness + shops + CCTV + crowd + AI → a data layer KSEB and Police can use. Map: schematic Kochi from real coordinates; "Real tiles" adds OpenStreetMap when opened online (© OpenStreetMap contributors).</p></div></div>
+<div id="modal"><div class="box"><h2>ARE YOU SAFE?</h2><p id="why" class="mute"></p><p id="cnt">10</p><p>Press OK within 10 seconds or SOS is sent.</p><button id="safe">I'M SAFE – OK</button></div></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const X0=76.21,Y0=10.04,KX=9850,KY=1e4,P=(la,lo)=>[(lo-X0)*KX,(Y0-la)*KY],IP=(x,y)=>[Y0-y/KY,X0+x/KX];
+const N=[["Fort Kochi",9.9658,76.2421],["Mattancherry",9.9581,76.2586],["High Court",9.984,76.2735],["Marine Drive",9.977,76.2795],["MG Road",9.9712,76.2845],["Ernakulam South",9.969,76.291],["Ernakulam North",9.9937,76.2893],["Kaloor",9.9942,76.303],["Palarivattom",10.0042,76.3079],["Edappally",10.0261,76.3084],["Kadavanthra",9.968,76.3],["Vyttila",9.9672,76.3181],["Kakkanad",10.0159,76.3419]].map(n=>({n:n[0],p:P(n[1],n[2])}));
+const E=[[0,1,3,1,40],[1,5,2,1,35],[0,2,1,0,15],[2,3,3,2,80],[3,4,5,3,75],[4,5,5,3,85],[2,6,2,1,40],[6,7,3,2,55],[7,8,3,2,60],[8,9,4,3,65],[5,10,2,1,35],[10,11,2,2,45],[7,10,2,1,40],[8,11,1,1,25],[8,12,1,0,15],[5,6,1,0,20]].map(e=>{const a=N[e[0]].p,b=N[e[1]].p;return{a:e[0],b:e[1],sh:e[2],cc:e[3],cr:e[4],len:Math.round(Math.hypot(a[0]-b[0],a[1]-b[1])*13.3)};});
+const L=[];E.forEach((e,i)=>[.33,.67].forEach(t=>{const a=N[e.a].p,b=N[e.b].p;L.push({x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t,ok:true,e:i,v:false});}));[3,4,5,26,27,28,30].forEach(k=>L[k].ok=false);
+let hour=21,from=5,to=9,sel=-1,tool="inspect",spot=null,cur,walk=null,log=[],sosN=0,busy=false,iv,run=0,watching=false,V={x:0,y:0,w:1480,h:1050};
+const W=[4,3,2,1],ename=i=>N[E[i].a].n+" – "+N[E[i].b].n,col=s=>s>=70?"var(--good)":s>=45?"var(--warn)":"var(--bad)";
+const nf=()=>hour<=21?1:hour==22?.6:hour==23?.3:.15,cf=()=>Math.max(.2,1-(hour-18)*.12),fmt=h=>h==24?"12:00 am":(h>12?h-12:h)+":00 pm";
+function segD(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
+const nearE=p=>{let b=0,bd=1e9;E.forEach((e,i)=>{const d=segD(p,N[e.a].p,N[e.b].p);if(d<bd){bd=d;b=i;}});return b;};
+const nearN=p=>{let b=0,bd=1e9;N.forEach((n,i)=>{const d=Math.hypot(n.p[0]-p[0],n.p[1]-p[1]);if(d<bd){bd=d;b=i;}});return b;};
+function score(i){const e=E[i],ls=L.filter(l=>l.e==i),q=ls.length?100*ls.filter(l=>l.ok).length/ls.length:50,t=W[0]+W[1]+W[2]+W[3]||1;
+return Math.round((q*W[0]+Math.min(e.sh,5)*20*nf()*W[1]+Math.min(e.cc,3)/3*100*W[2]+e.cr*cf()*W[3])/t);}
+function route(s,t,cost){const d=Array(N.length).fill(1e9),p=Array(N.length).fill(null),dn=[];d[s]=0;
+for(let k=0;k<N.length;k++){let u=-1;for(let i=0;i<N.length;i++)if(!dn[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||d[u]>=1e9)break;dn[u]=1;
+E.forEach((e,ei)=>{if(e.a!=u&&e.b!=u)return;const v=e.a==u?e.b:e.a,c=d[u]+cost(ei);if(c<d[v]){d[v]=c;p[v]=[u,ei];}});}
+const es=[],ns=[t];let c=t;while(c!=s&&p[c]){es.unshift(p[c][1]);c=p[c][0];ns.unshift(c);}
+const len=es.reduce((a,i)=>a+E[i].len,0);return{es,ns,len,sc:len?Math.round(es.reduce((a,i)=>a+score(i)*E[i].len,0)/len):0,pts:ns.map(i=>N[i].p.join(","))};}
+/* ---- map ---- */
+const poly=a=>a.map(([la,lo])=>P(la,lo).join(",")).join(" ");
+const GEO=[[[10.06,76.285],[10.035,76.275],[10.01,76.268],[9.995,76.266],[9.985,76.271],[9.975,76.2775],[9.968,76.2835],[9.958,76.289],[9.945,76.289],[9.93,76.292],[9.93,76.37],[10.06,76.37]],
+[[9.978,76.24],[9.968,76.2345],[9.96,76.238],[9.952,76.25],[9.95,76.26],[9.956,76.264],[9.964,76.262],[9.972,76.256],[9.978,76.248]],
+[[9.972,76.2665],[9.964,76.2655],[9.953,76.2685],[9.95,76.2755],[9.956,76.2775],[9.965,76.2735],[9.971,76.2695]],
+[[10.06,76.215],[10.03,76.225],[10.0,76.232],[9.982,76.236],[9.986,76.242],[9.998,76.245],[10.03,76.244],[10.06,76.248]]];
+function geo(){let s="";for(let lo=76.22;lo<76.37;lo+=.02){const a=P(10.05,lo),b=P(9.92,lo);s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" style="stroke:var(--line);opacity:.5;vector-effect:non-scaling-stroke"/>`;}
+for(let la=9.94;la<10.05;la+=.02){const a=P(la,76.2),b=P(la,76.38);s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" style="stroke:var(--line);opacity:.5;vector-effect:non-scaling-stroke"/>`;}
+GEO.forEach(g=>s+=`<polygon points="${poly(g)}" style="fill:var(--land);stroke:var(--acc);stroke-opacity:.35;stroke-width:1.5px;vector-effect:non-scaling-stroke"/>`);
+[["ARABIAN SEA",9.945,76.218],["VEMBANAD LAKE",10.015,76.252]].forEach(t=>{const p=P(t[1],t[2]);s+=`<text x="${p[0]}" y="${p[1]}" style="fill:var(--acc);opacity:.3;font-size:26px;letter-spacing:6px">${t[0]}</text>`;});
+$("geo").innerHTML=s;}
+const setV=()=>$("svg").setAttribute("viewBox",`${V.x} ${V.y} ${V.w} ${V.h}`);
+function fit(){const s=$("svg"),r=s.clientHeight/s.clientWidth||.7;V.w=Math.max(1480,1050/r);V.h=V.w*r;V.x=(1480-V.w)/2;V.y=(1050-V.h)/2;setV();if(cur)draw();}
+function zoom(f,c){V.x=c[0]-(c[0]-V.x)*f;V.y=c[1]-(c[1]-V.y)*f;V.w=Math.max(120,Math.min(3000,V.w*f));V.h=V.h*(V.w/(V.w/f>0?V.w:1))/1;const s=$("svg");V.h=V.w*s.clientHeight/s.clientWidth;setV();draw();}
+function fly(x,y,w){const s={...V},r=V.h/V.w,tw=w,tx=x-tw/2,ty=y-tw*r/2;let t=0;const it=setInterval(()=>{t+=.06;const u=t>=1?1:1-Math.pow(1-t,3);V.x=s.x+(tx-s.x)*u;V.y=s.y+(ty-s.y)*u;V.w=s.w+(tw-s.w)*u;V.h=V.w*r;setV();draw();if(t>=1)clearInterval(it);},16);}
+const pt=e=>{const s=$("svg"),p=s.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(s.getScreenCTM().inverse());return[q.x,q.y];};
+function draw(){const k=V.w/1480,r=10*Math.pow(k,.75),fs=19*k,A=cur.A,B=cur.B;let s="";
+E.forEach((e,i)=>{const a=N[e.a].p,b=N[e.b].p;s+=`<line data-e="${i}" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke-linecap="round" style="stroke:${col(score(i))};stroke-width:6px;opacity:.55;vector-effect:non-scaling-stroke"/>`;});
+const ov=(R,st)=>R.pts.length>1?`<polyline points="${R.pts.join(" ")}" fill="none" stroke-linecap="round" stroke-linejoin="round" style="${st};vector-effect:non-scaling-stroke"/>`:"";
+s+=ov(A,"stroke:var(--amb);stroke-width:3px;stroke-dasharray:3 8")+ov(B,"stroke:var(--acc);stroke-width:4px;filter:drop-shadow(0 0 4px var(--acc))");
+L.forEach((l,i)=>{s+=(l.ok?"":`<circle class="ping" cx="${l.x}" cy="${l.y}" r="${r}"/>`)+`<circle class="lt" data-k="${i}" cx="${l.x}" cy="${l.y}" r="${i==sel?r*1.5:r}" style="fill:${l.ok?"var(--good)":"var(--bad)"};stroke:${i==sel?"var(--amb)":l.v?"var(--acc)":"var(--panel)"};stroke-width:2px;vector-effect:non-scaling-stroke;cursor:pointer"/>`;});
+N.forEach((n,i)=>s+=`<circle data-n="${i}" cx="${n.p[0]}" cy="${n.p[1]}" r="${r*.85}" style="fill:var(--panel);stroke:${i==from?"var(--good)":i==to?"var(--amb)":"var(--ink)"};stroke-width:2px;vector-effect:non-scaling-stroke"/><text x="${n.p[0]+r*1.5}" y="${n.p[1]+fs*.35}" style="fill:var(--ink);font-size:${fs}px;paint-order:stroke;stroke:var(--sea);stroke-width:3px">${(i==from?"▲ ":i==to?"■ ":"")+n.n}</text>`);
+if(spot)s+=`<g transform="translate(${spot.p[0]} ${spot.p[1]}) scale(${Math.pow(k,.75)})" style="stroke:var(--amb);stroke-width:2px;vector-effect:non-scaling-stroke;fill:none"><circle r="16"/><path d="M-26 0H-8M8 0H26M0-26V-8M0 8V26"/></g>`;
+$("dyn").innerHTML=s;}
+/* ---- tiles (real OSM, works when file is opened online) ---- */
+let tilesOn=false,tOk=0,tBad=0;
+function tiles(){const g=$("tl");if(!tilesOn){g.innerHTML="";$("geo").style.opacity=1;return;}$("geo").style.opacity=.2;tOk=tBad=0;
+const z=14,n=2**z,x2=lo=>Math.floor((lo+180)/360*n),y2=la=>Math.floor((1-Math.log(Math.tan(la*Math.PI/180)+1/Math.cos(la*Math.PI/180))/Math.PI)/2*n),la=y=>Math.atan(Math.sinh(Math.PI*(1-2*y/n)))*180/Math.PI,lo=x=>x/n*360-180;let s="";
+for(let x=x2(76.2);x<=x2(76.37);x++)for(let y=y2(10.05);y<=y2(9.93);y++){const a=P(la(y),lo(x)),b=P(la(y+1),lo(x+1));s+=`<image href="https://tile.openstreetmap.org/${z}/${x}/${y}.png" x="${a[0]}" y="${a[1]}" width="${b[0]-a[0]+.6}" height="${b[1]-a[1]+.6}"/>`;}
+g.innerHTML=s;g.querySelectorAll("image").forEach(i=>{i.addEventListener("load",()=>{if(!tOk++)hint("Live OpenStreetMap tiles ON · © OpenStreetMap contributors");});i.addEventListener("error",()=>{if(!tBad++){hint("Tiles blocked here. Download the file and open it online to see the live map.");}});});}
+$("tg").onclick=()=>{tilesOn=!tilesOn;$("tg").classList.toggle("on",tilesOn);tiles();};
+/* ---- map input ---- */
+const HINT={inspect:"INSPECT · tap a street or light",photo:"PHOTO SPOT · tap where the photo was taken, or tap an existing light",start:"tap a place to set START",end:"tap a place to set END",drone:"tap anywhere to deploy the nearest drone"};
+let hudT="";const hint=t=>{hudT=t;$("hud").textContent=t;};
+function setTool(t){tool=t;document.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t==t));hint(HINT[t]);}
+document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+function info(t){const d=t.dataset||{};if(d.k!=null){const l=L[d.k],[la,lo]=IP(l.x,l.y);return`LIGHT ${+d.k+1} · ${ename(l.e)} · ${l.ok?"WORKING":"FAILED"}${l.v?" · verified":""} · ${la.toFixed(4)}N ${lo.toFixed(4)}E`;}
+if(d.e!=null)return`${ename(+d.e)} · ${E[d.e].len} m · safety ${score(+d.e)}/100`;if(d.n!=null)return N[d.n].n.toUpperCase();return null;}
+let dn=null,drag=false;const sv=$("svg");
+sv.addEventListener("pointerdown",e=>{dn={x:e.clientX,y:e.clientY,vx:V.x,vy:V.y,t:e.target};drag=false;});
+sv.addEventListener("pointermove",e=>{if(dn){const dx=e.clientX-dn.x,dy=e.clientY-dn.y;if(Math.hypot(dx,dy)>5)drag=true;if(drag){const sc=V.w/sv.clientWidth;V.x=dn.vx-dx*sc;V.y=dn.vy-dy*sc;setV();}}else{const t=info(e.target);$("hud").textContent=t||hudT;}});
+addEventListener("pointerup",e=>{if(!dn)return;const t=dn.t,was=drag;dn=null;if(was){draw();return;}if(e.target!==sv&&!sv.contains(e.target))return;mapClick(t,pt(e));});
+sv.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY>0?1.2:1/1.2,pt(e));},{passive:false});
+$("zi").onclick=()=>zoom(1/1.4,[V.x+V.w/2,V.y+V.h/2]);$("zo").onclick=()=>zoom(1.4,[V.x+V.w/2,V.y+V.h/2]);$("zr").onclick=fit;
+function mapClick(t,p){const k=t.dataset&&t.dataset.k;
+if(tool=="photo"){spot=k!=null?{k:+k,p:[L[k].x,L[k].y]}:{p};if(k!=null)sel=+k;$("spot").textContent=k!=null?` Light ${+k+1} selected`:` new light @ ${IP(p[0],p[1]).map(v=>v.toFixed(4)).join(", ")}`;setTab("detect");draw();return;}
+if(tool=="start"||tool=="end"){const n=nearN(p);if(tool=="start")from=n;else to=n;$("from").value=from;$("to").value=to;refresh();return;}
+if(tool=="drone"){const d=D.reduce((a,b)=>Math.hypot(a.x-p[0],a.y-p[1])<Math.hypot(b.x-p[0],b.y-p[1])?a:b);d.tg={x:p[0],y:p[1],dep:1};hint(`Drone-${d.id} deployed`);return;}
+if(k!=null){sel=+k;draw();$("hud").textContent=info(t);}else{const i=nearE(p);hint(ename(i)+` · safety ${score(i)}/100`);}}
+/* ---- drones + walker ---- */
+const D=[0,6,12].map((n,i)=>({x:N[n].p[0],y:N[n].p[1],n,tg:null,a:0,id:i+1}));
+function stepD(d,dt){if(!d.tg){const nb=E.filter(e=>e.a==d.n||e.b==d.n).map(e=>e.a==d.n?e.b:e.a),n=nb[Math.random()*nb.length|0];d.tg={x:N[n].p[0],y:N[n].p[1],n};}
+const dx=d.tg.x-d.x,dy=d.tg.y-d.y,ds=Math.hypot(dx,dy),sp=75*dt;d.a+=dt*300;
+if(ds<=sp){d.x=d.tg.x;d.y=d.tg.y;if(d.tg.dep){const nr=L.filter(l=>Math.hypot(l.x-d.x,l.y-d.y)<80);addLog(`Drone-${d.id} scan: ${nr.length} lights seen, ${nr.filter(l=>!l.ok).length} failed`);d.n=nearN([d.x,d.y]);}else d.n=d.tg.n;d.tg=null;}else{d.x+=dx/ds*sp;d.y+=dy/ds*sp;}}
+let lt=0;function loop(t){const dt=Math.min(.05,(t-lt)/1000||0);lt=t;D.forEach(d=>stepD(d,dt));const q=Math.pow(V.w/1480,.75);let s="";
+D.forEach(d=>s+=`<g transform="translate(${d.x} ${d.y}) scale(${q})"><circle class="scan" r="34"/><g transform="rotate(${d.a})" style="stroke:var(--acc);stroke-width:2px;vector-effect:non-scaling-stroke"><path d="M-9-9L9 9M9-9L-9 9" fill="none"/></g><circle r="3.5" style="fill:var(--acc)"/><text y="-14" text-anchor="middle" style="fill:var(--acc);font-size:11px">D${d.id}</text></g>`);
+if(walk){walk.d+=110*dt;let d=walk.d,j=0,pos=null;for(;j<walk.pts.length-1;j++){const a=walk.pts[j],b=walk.pts[j+1],sl=Math.hypot(b[0]-a[0],b[1]-a[1]);if(d<=sl){pos=[a[0]+(b[0]-a[0])*d/sl,a[1]+(b[1]-a[1])*d/sl];break;}d-=sl;}
+if(pos){s+=`<circle cx="${pos[0]}" cy="${pos[1]}" r="${7*q}" style="fill:var(--amb)"/>`;$("wstat").textContent=` On ${ename(walk.es[j])} · safety ${score(walk.es[j])}/100`;}else{addLog("Walker arrived via safest route");$("wstat").textContent=" Arrived safely.";walk=null;}}
+$("dr").innerHTML=s;requestAnimationFrame(loop);}
+$("walk").onclick=()=>{if(cur.B.ns.length>1){walk={pts:cur.B.ns.map(i=>N[i].p),es:cur.B.es,d:0};addLog("Walk started on safest route");}};
+/* ---- panels ---- */
+function setTab(n){document.querySelectorAll("[data-p]").forEach(b=>b.classList.toggle("on",b.dataset.p==n));["detect","route","sos","intel"].forEach(x=>$("p-"+x).hidden=x!=n);}
+document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>setTab(b.dataset.p));
+function addLog(m){log.push(new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+" · "+m);$("log").innerHTML=log.slice(-7).reverse().map(l=>`<li>${esc(l)}</li>`).join("");}
+function drawRoutes(){const A=cur.A,B=cur.B,lab=s=>s>=70?"GREEN":s>=45?"AMBER":"RED",cd=(n,r)=>`<div class="rt" style="border-color:${col(r.sc)}"><b>${n}</b><span>${r.len} m</span><span class="pill" style="background:${col(r.sc)}">${r.sc}/100 ${lab(r.sc)}</span></div>`;
+$("routes").innerHTML=from==to?"<p>Pick two different places.</p>":cd("A · Shortest (amber dashed)",A)+cd("B · Safest (cyan)",B)+`<p><b>${B.len==A.len?"Shortest is also the safest.":`B is ${B.len-A.len} m longer but ${B.sc-A.sc} points safer.`}</b></p>`;}
+function drawDash(){const f=L.filter(l=>!l.ok).length;$("cf").textContent=f;drawCredits();
+$("kpi").innerHTML=`<div class="k"><b>${L.length}</b>lights tracked</div><div class="k"><b style="color:var(--bad)">${f}</b>failed</div><div class="k"><b>${Math.round(f/L.length*100)}%</b>dark</div><div class="k"><b>${sosN}</b>SOS events</div>`;
+$("fails").innerHTML=L.map((l,i)=>l.ok?"":`<li data-f="${i}" style="cursor:pointer">Light ${i+1} · ${ename(l.e)}<span class="pill" style="background:var(--bad)">ALERT</span></li>`).join("")||"<li>All lights working</li>";
+$("rank").innerHTML=E.map((_,i)=>[i,score(i)]).sort((a,b)=>a[1]-b[1]).slice(0,5).map(([i,s])=>`<li>${ename(i)}<span class="pill" style="background:${col(s)}">${s}</span></li>`).join("");}
+$("fails").onclick=e=>{const li=e.target.closest("[data-f]");if(li){const l=L[+li.dataset.f];sel=+li.dataset.f;fly(l.x,l.y,260);}};
+function drawCredits(){const T=[[50,"Bronze","Night Watcher badge"],[150,"Silver","Volunteer-hours certificate"],[300,"Gold","Priority line to the Corporation + featured citizen"]],nx=T.find(t=>credits<t[0]),cu=T.filter(t=>credits>=t[0]).pop(),pv=nx?(T[T.indexOf(nx)-1]||[0])[0]:300;
+$("cred").innerHTML=`<div class="lock" style="border-style:solid;border-color:var(--acc);color:var(--ink)"><b style="color:var(--acc)">CITIZEN CREDITS</b><div class="kpi" style="margin:6px 0"><div class="k"><b>${credits}</b>your credits</div><div class="k"><b>${cu?cu[1]:"-"}</b>tier</div></div><div class="bar"><i style="width:${nx?Math.round((credits-pv)/(nx[0]-pv)*100):100}%"></i></div><p class="mute">${nx?`${nx[0]-credits} more credits to ${nx[1]}`:"Top tier reached"}</p>
+<p><b>How you earn</b></p><ul><li>Approved photo of a faulty light<span class="pill" style="background:var(--bad)">+10</span></li><li>Photo at a new spot (map updated)<span class="pill" style="background:var(--acc)">+5</span></li><li>Repair confirmed (failed light now works)<span class="pill" style="background:var(--good)">+5</span></li><li>Verified working light<span class="pill" style="background:var(--good)">+2</span></li><li>10th approved photo milestone<span class="pill" style="background:var(--warn)">+20</span></li><li>Rejected or duplicate photo<span class="pill" style="background:var(--line);color:var(--ink)">0</span></li></ul>
+<p><b>Rewards (proposed)</b></p><ul>${T.map(t=>`<li>${t[1]} · ${t[0]} credits<span class="mute">${t[2]}</span></li>`).join("")}</ul><p class="mute">Credits only count for approved night photos, so faked or repeated uploads earn nothing.</p>${clog.length?`<p><b>Recent credits</b></p><ul>${clog.slice(-4).reverse().map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}</div>`;}
+function refresh(){const A=route(from,to,i=>E[i].len),B=route(from,to,i=>E[i].len*(105-score(i))/100);cur={A,B};draw();drawRoutes();drawDash();updateDetect();}
+$("from").onchange=e=>{from=+e.target.value;refresh();};$("to").onchange=e=>{to=+e.target.value;refresh();};
+$("hour").oninput=e=>{hour=+e.target.value;$("hv").textContent=fmt(hour);refresh();};
+["w0","w1","w2","w3"].forEach((id,i)=>$(id).oninput=()=>{W[i]=+$(id).value;refresh();});
+/* ---- detector: comments unlock after 10 approved photos ---- */
+let appr=0,seen=new Set(),stats=[],qn=0,dc=0,credits=0,clog=[];
+function analyzeCv(){const d=$("cv").getContext("2d").getImageData(0,0,320,180).data,h=new Array(256).fill(0),n=d.length/4;let sm=0,sq=0;
+for(let i=0;i<d.length;i+=4){const y=Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2]);h[y]++;sm+=y;sq+=y*y;}
+const need=Math.ceil(n*.02);let a=0,tt=0;for(let v=255;v>=0&&a<need;v--){const t=Math.min(h[v],need-a);a+=t;tt+=t*v;}const m=sm/n;return{glow:Math.round(tt/need),mean:m,sd:Math.sqrt(Math.max(0,sq/n-m*m))};}
+function addQ(h){$("qs").insertAdjacentHTML("afterbegin",`<li><span>${h}</span></li>`);while($("qs").children.length>8)$("qs").lastChild.remove();}
+function submit(key,label){const m=analyzeCv();let rej=seen.has(key)?"duplicate photo":m.mean>150?"looks like daytime, night photo needed":m.sd<6?"blank or blurry image":null;
+if(rej){addQ(`<span class="pill" style="background:var(--bad)">REJECTED</span> ${esc(label)} · ${rej}`);return;}
+seen.add(key);let k;const isNew=!!(spot&&spot.k==null);if(spot&&spot.k!=null)k=spot.k;else if(spot){L.push({x:spot.p[0],y:spot.p[1],ok:true,e:nearE(spot.p),v:false});k=L.length-1;}else{k=L.findIndex(l=>!l.v);if(k<0)k=Math.random()*L.length|0;}
+spot=null;$("spot").textContent="no spot: next unverified light";const l=L[k],was=appr>=10,prevOk=l.ok;l.ok=m.glow>=+$("thr").value;l.v=true;sel=k;appr++;stats.push({g:m.glow,ok:l.ok});
+let c=l.ok?2:10,why=l.ok?"verified working light":"faulty light reported";if(l.ok&&!prevOk){c+=5;why="repair confirmed";}if(isNew){c+=5;why+=" + new map spot";}if(appr==10){c+=20;why+=" + 10-photo milestone";}credits+=c;clog.push(`+${c} · ${why}`);
+const cm=appr>10||(appr==10&&false)?"":"";const unlocked=appr>=10,note=unlocked?` <i class="mute">${l.ok?"Healthy lamp. Re-check in 30 days.":`Fault likely (lamp/ballast). Crowd ${E[l.e].cr}% → ${E[l.e].cr>50?"urgent":"schedule"}.`}</i>`:"";
+addQ(`<span class="pill" style="background:${l.ok?"var(--good)":"var(--bad)"}">APPROVED</span> ${esc(label)} · Light ${k+1} ${l.ok?"WORKING":"FAILED"} · glow ${m.glow} · +${c} credits${note}`);
+addLog(`Photo approved: Light ${k+1} (${ename(l.e)}) ${l.ok?"working":"FAILED, alert sent to Corporation"}`);if(unlocked&&!was)addQ(`<b style="color:var(--acc)">★ 10 approved: AI field notes unlocked</b>`);refresh();}
+function notes(){const Wk=stats.filter(s=>s.ok).map(s=>s.g),Fl=stats.filter(s=>!s.ok).map(s=>s.g),av=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const cal=Wk.length&&Fl.length?`Suggested threshold: <b>${Math.round((av(Wk)+av(Fl))/2)}</b> (avg working ${Math.round(av(Wk))}, avg failed ${Math.round(av(Fl))})`:"Need both working and failed photos to calibrate the threshold.";
+const top=L.map((l,i)=>({i,l,p:E[l.e].cr+E[l.e].sh*6})).filter(o=>!o.l.ok).sort((a,b)=>b.p-a.p).slice(0,3);
+return`<div class="lock" style="border-style:solid;border-color:var(--acc);color:var(--ink)"><b style="color:var(--acc)">AI FIELD NOTES · UNLOCKED</b><p>${cal}</p><p><b>Fix first</b></p><ul>${top.map(o=>`<li>Light ${o.i+1} · ${ename(o.l.e)}<span class="pill" style="background:${o.p>70?"var(--bad)":"var(--warn)"}">${o.p>70?"HIGH":"MED"}</span></li>`).join("")||"<li>No failed lights</li>"}</ul><p><b>Instructions</b></p><ol><li>Send a crew with a lamp + ballast kit to the lights above.</li><li>Re-photograph after repair so the marker turns green.</li><li>Shoot from about 10 m, no flash, lamp in frame.</li><li>Clear corridors with 2+ failed lights first.</li></ol></div>`;}
+function updateDetect(){$("pb").style.width=Math.min(100,appr*10)+"%";$("pc").textContent=`${Math.min(appr,10)} / 10 approved photos${appr>=10?" · unlocked":""}`;$("notes").innerHTML=appr>=10?notes():`<div class="lock">🔒 AI field notes &amp; instructions unlock after 10 approved photos (${appr}/10).</div>`;}
+function demo(kind){const x=$("cv").getContext("2d"),px=50+Math.random()*220;x.fillStyle=kind=="day"?"#9ec3e8":"#05070d";x.fillRect(0,0,320,180);
+for(let i=0;i<500;i++){x.fillStyle=`rgba(255,255,255,${Math.random()*.06})`;x.fillRect(Math.random()*320,Math.random()*180,2,2);}
+x.fillStyle=kind=="day"?"#6a7b8c":"#1a1f2b";x.fillRect(0,130,320,50);x.fillRect(px-2,40,4,95);
+if(kind!="bad"){const g=x.createRadialGradient(px,40,2,px,60,90);g.addColorStop(0,"#fffbe0");g.addColorStop(.3,"rgba(255,220,120,.7)");g.addColorStop(1,"rgba(255,200,80,0)");x.fillStyle=g;x.fillRect(0,0,320,180);}
+submit("demo"+(++dc),"demo-"+kind);}
+$("d1").onclick=()=>demo("ok");$("d2").onclick=()=>demo("bad");$("d3").onclick=()=>demo("day");$("d10").onclick=()=>{for(let i=0;i<10;i++)demo(Math.random()<.6?"ok":"bad");};
+$("bspot").onclick=()=>setTool("photo");$("thr").oninput=()=>$("tv").textContent=$("thr").value;
+$("file").onchange=e=>{[...e.target.files].forEach(f=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{$("cv").getContext("2d").drawImage(im,0,0,320,180);submit(f.name+f.size,f.name);};im.src=r.result;};r.readAsDataURL(f);});e.target.value="";};
+/* ---- SOS ---- */
+function trigger(why){if(busy)return;busy=true;let t=10;$("why").textContent=why;$("cnt").textContent=t;$("modal").style.display="flex";iv=setInterval(()=>{t--;$("cnt").textContent=t;if(t<=0){clearInterval(iv);$("modal").style.display="none";sendSOS(why);}},1000);}
+$("safe").onclick=()=>{clearInterval(iv);$("modal").style.display="none";busy=false;addLog("User confirmed safe: "+$("why").textContent);};
+function sendSOS(why){const me=N[from],safe=[3,4,5,7,8,9].reduce((a,b)=>Math.hypot(N[a].p[0]-me.p[0],N[a].p[1]-me.p[1])<Math.hypot(N[b].p[0]-me.p[0],N[b].p[1]-me.p[1])?a:b),g=[...document.querySelectorAll(".g")].map(i=>i.value||"Guardian"),
+[la,lo]=IP(me.p[0],me.p[1]),msg=`SOS from NIGHTNGL-3: ${why}. Location: ${me.n} (https://maps.google.com/?q=${la.toFixed(5)},${lo.toFixed(5)}). Nearest safe spot: ${N[safe].n} shops. Please call me or police (112).`;
+$("sos").style.borderColor="var(--bad)";$("sos").innerHTML=`<div><b style="color:var(--bad)">SOS SENT</b> to ${esc(g.join(", "))}, Police control room and safe spot <b>${N[safe].n}</b>. Drone-1 dispatched.<p class="mute">${esc(msg)}</p><button onclick="window.open('https://wa.me/?text=${encodeURIComponent(msg)}','_blank','noopener')">Open WhatsApp alert</button></div>`;
+D[0].tg={x:me.p[0],y:me.p[1],dep:1};sosN++;addLog(`SOS (${why}) from ${me.n}: guardians + police + ${N[safe].n} + drone`);busy=false;drawDash();fly(me.p[0],me.p[1],420);}
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>trigger(b.dataset.s));
+$("mot").onclick=async()=>{if(watching)return;try{if(window.DeviceMotionEvent&&DeviceMotionEvent.requestPermission&&await DeviceMotionEvent.requestPermission()!="granted")throw 0;
+addEventListener("devicemotion",e=>{const a=e.accelerationIncludingGravity;if(!a)return;const d=Math.abs(Math.hypot(a.x||0,a.y||0,a.z||0)-9.8);if(d>25){trigger("Phone fall / hard impact");run=0;}else if(d>7){if(++run>=15){trigger("Sudden running");run=0;}}else run=Math.max(0,run-1);});
+watching=true;$("ms").textContent=" Motion sensor ON";}catch(e){$("ms").textContent=" Unavailable here. Use the buttons.";}};
+$("theme").onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme=="light"?"dark":"light";};
+/* ---- init ---- */
+$("from").innerHTML=$("to").innerHTML=N.map((n,i)=>`<option value="${i}">${n.n}</option>`).join("");$("from").value=from;$("to").value=to;$("hv").textContent=fmt(hour);
+geo();setTool("inspect");addLog("Grid online: 7 failed lights flagged from earlier reports");fit();refresh();addEventListener("resize",fit);
+setInterval(()=>$("clk").textContent=new Date().toLocaleTimeString(),1000);requestAnimationFrame(loop);
+</script></body></html>
